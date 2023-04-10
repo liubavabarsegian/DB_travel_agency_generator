@@ -96,7 +96,7 @@ CREATE TABLE "orders" (
     client_id integer NULL,
     FOREIGN KEY (client_id) REFERENCES clients (id),
     worker_id integer NULL,
-    FOREIGN KEY (worker_id) REFERENCES clients (id),
+    FOREIGN KEY (worker_id) REFERENCES workers (id),
     trip_id integer NULL,
-    FOREIGN KEY (trip_id) REFERENCES clients (id)
+    FOREIGN KEY (trip_id) REFERENCES trips (id)
 )

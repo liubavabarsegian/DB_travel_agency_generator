@@ -12,6 +12,9 @@ def insert_into_all_tables
         insert_into_trips(file)
         insert_into_workers(file)
     end
+    File.open('generator_10mln.sql', 'w') do |file|
+        insert_into_orders(file)
+    end
 end
 
 def insert_into_aircompanies(file)
@@ -103,15 +106,16 @@ def insert_into_flights(file)
 end
 
 def insert_into_trips(file)
-    file.puts("INSERT INTO trips (departure_flight_id, arrival_flight_id, hotel_id, meal) VALUES")
+    file.puts("INSERT INTO trips (departure_flight_id, hotel_id, meal) VALUES")
     (0...100).each do 
         meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
-        file.puts("\t((SELECT id from flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1), (SELECT id from flights ORDER BY random() LIMIT 1), (SELECT id FROM hotels ORDER BY random() LIMIT 1),  \'#{meal}'\ ),")
+        file.puts("\t((SELECT id from flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1), (SELECT id FROM hotels ORDER BY random() LIMIT 1),  \'#{meal}'\ ),")
     end
     meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
-    file.puts("\t((SELECT id from flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1), (SELECT id from flights ORDER BY random() LIMIT 1), (SELECT id FROM hotels ORDER BY random() LIMIT 1),  \'#{meal}'\ );")
-    file.puts("UPDATE trips SET departure_date = (SELECT departure_time from flights where flights.id = trips.departure_flight_id ), arrival_date = (SELECT departure_time from flights where flights.id = trips.arrival_flight_id );")
-    
+    file.puts("\t((SELECT id from flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1), (SELECT id FROM hotels ORDER BY random() LIMIT 1),  \'#{meal}'\ );")
+    file.puts("UPDATE trips SET arrival_flight_id = (SELECT id from flights where flights.departure_time > (SELECT departure_time FROM flights where flights.id = trips.departure_flight_id) ORDER BY random() LIMIT 1),
+        departure_date = (SELECT departure_time from flights where flights.id = trips.departure_flight_id );")
+    file.puts("UPDATE trips SET arrival_date = (SELECT departure_time from flights where flights.id = trips.arrival_flight_id );")
 end
 
 def insert_into_workers(file)
@@ -128,6 +132,30 @@ def insert_into_workers(file)
     bday = Faker::Date.birthday
     salary = Faker::Number.positive.round
     file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, #{salary});")
+end
+
+def insert_into_orders(file)
+    file.puts("INSERT INTO orders (number_of_people, trip_id, client_id, worker_id) VALUES")
+    (0...6000).each do 
+        number = rand(1...10)
+        file.puts("\t(#{number}, (SELECT id FROM trips ORDER BY random() LIMIT 1), (SELECT id FROM clients ORDER BY random() LIMIT 1), (SELECT id FROM workers ORDER BY random() LIMIT 1)),")
+    end
+    number = rand(1...10)
+    file.puts("\t(#{number}, (SELECT id FROM trips ORDER BY random() LIMIT 1), (SELECT id FROM clients ORDER BY random() LIMIT 1), (SELECT id FROM workers ORDER BY random() LIMIT 1));")
+
+    file.puts("UPDATE orders SET order_time = (SELECT departure_date FROM trips WHERE id = orders.trip_id),
+    total_price = orders.number_of_people * 
+    ((SELECT price FROM flights WHERE flights.id = 
+        (SELECT departure_flight_id from trips where trips.id = orders.trip_id)) 
+    +
+    (SELECT price FROM flights WHERE flights.id = 
+        (SELECT arrival_flight_id from trips where trips.id = orders.trip_id)) 
+    +
+    (SELECT price_for_a_person FROM hotels WHERE hotels.id = 
+        (SELECT hotel_id from trips where trips.id = orders.trip_id) * (
+            SELECT (arrival_date - departure_date) FROM trips WHERE trips.id = orders.trip_id LIMIT 1
+        ))
+    )")
 end
 
 insert_into_all_tables
