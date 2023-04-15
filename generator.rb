@@ -136,7 +136,7 @@ end
 
 def insert_into_orders(file)
     file.puts("INSERT INTO orders (number_of_people, trip_id, client_id, worker_id) VALUES")
-    (0...6000).each do 
+    (0...500).each do 
         number = rand(1...10)
         file.puts("\t(#{number}, (SELECT id FROM trips ORDER BY random() LIMIT 1), (SELECT id FROM clients ORDER BY random() LIMIT 1), (SELECT id FROM workers ORDER BY random() LIMIT 1)),")
     end
