@@ -146,13 +146,13 @@ def insert_into_orders(file)
     file.puts("UPDATE orders SET order_time = (SELECT departure_date FROM trips WHERE id = orders.trip_id),
     total_price = orders.number_of_people * 
     ((SELECT price FROM flights WHERE flights.id = 
-        (SELECT departure_flight_id from trips where trips.id = orders.trip_id)) 
+        (SELECT departure_flight_id from trips where trips.id = orders.trip_id) LIMIT 1) 
     +
     (SELECT price FROM flights WHERE flights.id = 
         (SELECT arrival_flight_id from trips where trips.id = orders.trip_id)) 
     +
-    (SELECT price_for_a_person FROM hotels WHERE hotels.id = 
-        (SELECT hotel_id from trips where trips.id = orders.trip_id) * (
+    ((SELECT price_for_a_person FROM hotels WHERE hotels.id = 
+        (SELECT hotel_id from trips where trips.id = orders.trip_id)) * (
             SELECT (arrival_date - departure_date) FROM trips WHERE trips.id = orders.trip_id LIMIT 1
         ))
     )")
