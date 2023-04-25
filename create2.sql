@@ -7,21 +7,30 @@ DROP TABLE IF EXISTS "airports" CASCADE;
 DROP TABLE IF EXISTS "hotels" CASCADE;
 DROP TABLE IF EXISTS "cities" CASCADE;
 DROP TABLE IF EXISTS "countries" CASCADE;
+DROP TABLE IF EXISTS "continents" CASCADE;
+DROP TABLE IF EXISTS "tourists" CASCADE;
 DROP TABLE IF EXISTS "clients" CASCADE;
+DROP TABLE IF EXISTS "routes" CASCADE;
 DROP TABLE IF EXISTS "workers" CASCADE;
 
 
 CREATE TABLE "aircompanies" (
 	id SERIAL PRIMARY KEY,
 	aircompany_name varchar(255) default NULL,
-    phone varchar(10) default NULL,
+    phone varchar(255) default NULL,
     office_address varchar(255) default NULL
+);
+
+CREATE TABLE "continents" (
+    id SERIAL PRIMARY KEY,
+    name varchar(50)
 );
 
 CREATE TABLE "countries" (
 	id SERIAL PRIMARY KEY,
 	name varchar(255) default NULL,
-    continent varchar(10) default NULL
+    continent_id integer NULL,
+    FOREIGN KEY (continent_id) REFERENCES continents (id) ON DELETE CASCADE
 );
 
 CREATE TABLE "cities" (
@@ -40,12 +49,19 @@ CREATE TABLE "airports" (
 
 CREATE TABLE "clients" (
 	id SERIAL PRIMARY KEY,
-	full_name varchar(255) default NULL,
+	name varchar(255) default NULL,
+    phone varchar(255) default NULL,
+    bonus_points integer,
+    has_client_card boolean ---for 10% discount
+);
+
+CREATE TABLE "tourists" (
+    id SERIAL PRIMARY KEY,
+	name varchar(255) default NULL,
     phone varchar(255) default NULL,
     birthday_date date default NULL,
-    passport varchar(25) UNIQUE,
-    has_foreign_passport boolean,
-    discount_percent integer,
+    passport varchar(255) UNIQUE,
+    foreign_passport varchar(255) UNIQUE,
     has_visa boolean
 );
 
@@ -61,14 +77,14 @@ CREATE TABLE "workers" (
 
 CREATE TABLE "hotels" (
 	id SERIAL PRIMARY KEY,
-	name varchar(255) default NULL,
+	hotel_name varchar(255),
     has_pool boolean default false,
     number_of_stars integer,
     cleaning_included boolean default false,
     price_for_a_person integer,
     city_id integer NULL,
-    address varchar(255),
-    phone varchar(25),
+    hotel_address varchar(255),
+    phone varchar(255),
     web_site varchar(255),
     discount_percent_for_children integer,
     has_spa boolean,

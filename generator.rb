@@ -1,50 +1,33 @@
 require 'faker'
 
 def insert_into_all_tables
-    File.open('generator_100.sql', 'w') do |file|
+    File.open('better_data.sql', 'w') do |file|
         insert_into_aircompanies(file)
-        insert_into_countries(file)
-        insert_into_cities(file)
         insert_into_airports(file)
         insert_into_hotels(file)
         insert_into_clients(file)
-        insert_into_flights(file)
-        insert_into_trips(file)
-        insert_into_workers(file)
+        insert_into_tourists(file)
+    #     insert_into_flights(file)
+    #     insert_into_trips(file)
+    #     insert_into_workers(file)
     end
-    File.open('generator_10mln.sql', 'w') do |file|
-        insert_into_orders(file)
-    end
+    # File.open('better_orders.sql', 'w') do |file|
+    #     insert_into_orders(file)
+    # end
 end
 
 def insert_into_aircompanies(file)
-    file.puts("INSERT INTO aircompanies (name) VALUES")
+    file.puts("INSERT INTO aircompanies (aircompany_name, phone, office_address) VALUES")
     (0...100).each do 
         name = Faker::Company.name
-        file.puts("\t(\'#{name.tr("'", "")}\'),")
+        phone = Faker::PhoneNumber.cell_phone_with_country_code
+        office_address = Faker::Address.full_address
+        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}\', \'#{office_address.tr("'", "")}\' ),")
     end
     name = Faker::Company.name
-    file.puts("\t(\'#{name.tr("'", "")}\');")
-end
-
-def insert_into_countries(file)
-    file.puts("INSERT INTO countries (name) VALUES")
-    (0...100).each do 
-        name = Faker::Address.country
-        file.puts("\t(\'#{name.tr("'", "")}\'),")
-    end
-    name = Faker::Company.name
-    file.puts("\t(\'#{name.tr("'", "")}\');")
-end
-
-def insert_into_cities(file)
-    file.puts("INSERT INTO cities (name, country_id) VALUES")
-    (0...100).each do 
-        name = Faker::Address.city
-        file.puts("\t(\'#{name.tr("'", "")}\', (SELECT id FROM countries ORDER BY random() LIMIT 1)),")
-    end
-    name = Faker::Company.name
-    file.puts("\t(\'#{name.tr("'", "")}\', (SELECT id FROM countries ORDER BY random() LIMIT 1));")
+    phone = Faker::PhoneNumber.cell_phone_with_country_code
+    office_address = Faker::Address.full_address
+    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}\', \'#{office_address.tr("'", "")}\' );")
 end
 
 def insert_into_airports(file)
@@ -58,37 +41,85 @@ def insert_into_airports(file)
 end
 
 def insert_into_hotels(file)
-    file.puts("INSERT INTO hotels (name, has_pool, number_of_stars, cleaning_included, price_for_a_person, city_id) VALUES")
+    file.puts("INSERT INTO hotels (hotel_name, has_pool, number_of_stars, cleaning_included, price_for_a_person, city_id,
+            hotel_address, phone, web_site, discount_percent_for_children, has_spa, has_own_beach, wifi_price_for_a_day, 
+            has_aquapark, coefficient_for_seasons) VALUES")
     (0...100).each do 
         name = Faker::Name.name_with_middle
         has_pool = [true, false].sample
         number_of_stars = [1, 2, 3, 4, 5].sample
         cleaning_included = [true, false].sample
         price = Faker::Number.positive.round * number_of_stars / 100
-        file.puts("\t(\'#{name.tr("'", "")}\', \'#{has_pool}\', #{number_of_stars}, \'#{cleaning_included}\', #{price}, (SELECT id FROM cities ORDER BY random() LIMIT 1)),")
+        address = Faker::Address.street_address
+        phone = Faker::PhoneNumber.cell_phone_with_country_code
+        web_site = Faker::Internet.url 
+        discount_for_children = Faker::Number.between(from: 10,to: 40)
+        has_spa = [true, false].sample
+        has_own_beach = [true, false].sample
+        wifi = Faker::Number.between(from: 10,to: 100)
+        aquapark = [true, false].sample
+        coef = Faker::Number.between(from: 1.0, to: 3.0)
+        file.puts("\t(\'#{name.tr("'", "")}\', \'#{has_pool}\', #{number_of_stars}, \'#{cleaning_included}\', #{price}, 
+        (SELECT id FROM cities ORDER BY random() LIMIT 1),
+        \'#{address.tr("'", "")}\',\'#{phone}\', \'#{web_site}\', #{discount_for_children}, \'#{has_spa}\', \'#{has_own_beach}\',
+        #{wifi}, \'#{aquapark}\', #{coef}),")
     end
     name = Faker::Name.name_with_middle
     has_pool = [true, false].sample
     number_of_stars = [1, 2, 3, 4, 5].sample
     cleaning_included = [true, false].sample
     price = Faker::Number.positive.round * number_of_stars / 100
-    file.puts("\t(\'#{name.tr("'", "")}\', \'#{has_pool}\', #{number_of_stars}, \'#{cleaning_included}\', #{price}, (SELECT id FROM cities ORDER BY random() LIMIT 1));")
+    address = Faker::Address.street_address
+    phone = Faker::PhoneNumber.cell_phone_with_country_code
+    web_site = Faker::Internet.url 
+    discount_for_children = Faker::Number.between(from: 10,to: 40)
+    has_spa = [true, false].sample
+    has_own_beach = [true, false].sample
+    wifi = Faker::Number.between(from: 10,to: 100)
+    aquapark = [true, false].sample
+    coef = Faker::Number.between(from: 1.0, to: 3.0)
+    file.puts("\t(\'#{name.tr("'", "")}\', \'#{has_pool}\', #{number_of_stars}, \'#{cleaning_included}\', #{price}, 
+    (SELECT id FROM cities ORDER BY random() LIMIT 1),
+    \'#{address}\',\'#{phone}\', \'#{web_site}\', #{discount_for_children}, \'#{has_spa}\', \'#{has_own_beach}\',
+    #{wifi}, \'#{aquapark}\', #{coef});")
 end
 
 def insert_into_clients(file)
-    file.puts("INSERT INTO clients (full_name, phone, birthday_date, has_member_card) VALUES")
+    file.puts("INSERT INTO clients (name, phone, has_client_card, bonus_points ) VALUES")
     (0...100).each do 
-        name = Faker::Name.name_with_middle
+        name = Faker::Name.first_name_neutral
+        phone = Faker::PhoneNumber.phone_number_with_country_code
+        has_member_card = [true, false].sample
+        bonus_points = 100
+        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{has_member_card}\', #{bonus_points}),")
+    end
+    name = Faker::Name.first_name_neutral
+    phone = Faker::PhoneNumber.phone_number_with_country_code
+    has_member_card = [true, false].sample
+    bonus_points = 100
+    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{has_member_card}\', #{bonus_points});")
+end
+
+def insert_into_tourists(file)
+    file.puts("INSERT INTO tourists (name, phone, birthday_date, passport, foreign_passport, has_visa) VALUES")
+    (0...100).each do 
+        name = Faker::Name.first_name_neutral
         phone = Faker::PhoneNumber.phone_number_with_country_code
         bday = Faker::Date.birthday
-        has_member_card = [true, false].sample
-        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, \'#{has_member_card}'\),")
+        passport = Faker::IDNumber.danish_id_number
+        f_passport = Faker::IDNumber.danish_id_number
+        visa = [true, false].sample
+        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, \'#{passport}\',
+        \'#{f_passport}\', \'#{visa}\'),")
     end
-    name = Faker::Name.name_with_middle
+    name = Faker::Name.first_name_neutral
     phone = Faker::PhoneNumber.phone_number_with_country_code
     bday = Faker::Date.birthday
-    has_member_card = [true, false].sample
-    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, \'#{has_member_card}'\);")
+    passport = Faker::IDNumber.danish_id_number
+    f_passport = Faker::IDNumber.danish_id_number
+    visa = [true, false].sample
+    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, \'#{passport}\',
+    \'#{f_passport}\', \'#{visa}\');")
 end
 
 def insert_into_flights(file)
