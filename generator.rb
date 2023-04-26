@@ -7,13 +7,12 @@ def insert_into_all_tables
         insert_into_hotels(file)
         insert_into_clients(file)
         insert_into_tourists(file)
-    #     insert_into_flights(file)
-    #     insert_into_trips(file)
-    #     insert_into_workers(file)
+        insert_into_workers(file)
+        insert_into_trips(file)
+        insert_into_flights(file)
+        insert_into_routes(file)
+        # insert_into_payments_and_orders(file)
     end
-    # File.open('better_orders.sql', 'w') do |file|
-    #     insert_into_orders(file)
-    # end
 end
 
 def insert_into_aircompanies(file)
@@ -80,7 +79,7 @@ def insert_into_hotels(file)
     coef = Faker::Number.between(from: 1.0, to: 3.0)
     file.puts("\t(\'#{name.tr("'", "")}\', \'#{has_pool}\', #{number_of_stars}, \'#{cleaning_included}\', #{price}, 
     (SELECT id FROM cities ORDER BY random() LIMIT 1),
-    \'#{address}\',\'#{phone}\', \'#{web_site}\', #{discount_for_children}, \'#{has_spa}\', \'#{has_own_beach}\',
+    \'#{address.tr("'", "")}\',\'#{phone}\', \'#{web_site}\', #{discount_for_children}, \'#{has_spa}\', \'#{has_own_beach}\',
     #{wifi}, \'#{aquapark}\', #{coef});")
 end
 
@@ -122,71 +121,116 @@ def insert_into_tourists(file)
     \'#{f_passport}\', \'#{visa}\');")
 end
 
+def insert_into_workers(file)
+    file.puts("INSERT INTO workers (full_name, phone, passport, birthday_date, salary) VALUES")
+    (0...100).each do 
+        name = Faker::Name.name_with_middle
+        phone = Faker::PhoneNumber.phone_number_with_country_code
+        passport = Faker::IDNumber.danish_id_number
+        bday = Faker::Date.birthday
+        salary = Faker::Number.positive.round
+        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{passport}\', \'#{bday}'\, #{salary}),")
+    end
+    name = Faker::Name.name_with_middle
+    phone = Faker::PhoneNumber.phone_number_with_country_code
+    passport = Faker::IDNumber.danish_id_number
+    bday = Faker::Date.birthday
+    salary = Faker::Number.positive.round
+    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{passport}\', \'#{bday}'\, #{salary});")
+end
+
+
+def insert_into_trips(file)
+    file.puts("INSERT INTO trips (country_id, trip_type, number_of_nights, excursions_included, 
+        coefficient_for_seasons, meal) VALUES")
+    (0...100).each do 
+        trip_type = ["Оздоровительный", "Культурный", "Индивидуальный", "Гастрономический", "Пляжный"].sample
+        meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
+        number_of_nights = Faker::Number.between(from: 3,to: 14)
+        excursions_included = [true, false].sample
+        coef = Faker::Number.between(from: 1.0, to: 3.0)
+        file.puts("\t((SELECT id FROM countries ORDER BY random() LIMIT 1), 
+            \'#{trip_type}\', #{number_of_nights}, \'#{excursions_included}\', #{coef}, \'#{meal}'\ ),")
+    end
+    trip_type = ["Оздоровительный", "Культурный", "Индивидуальный", "Гастрономический", "Пляжный"].sample
+        meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
+        number_of_nights = Faker::Number.between(from: 3,to: 14)
+        excursions_included = [true, false].sample
+        coef = Faker::Number.between(from: 1.0, to: 3.0)
+        file.puts("\t((SELECT id FROM countries ORDER BY random() LIMIT 1), 
+            \'#{trip_type}\', #{number_of_nights}, \'#{excursions_included}\', #{coef}, \'#{meal}'\ );")
+    
+
+    price = Faker::Number.between(from: 50, to: 300) #плата за тур без учета гостишки
+    file.puts("UPDATE trips SET hotel_id = (SELECT id from hotels WHERE trips.country_id = (SELECT id FROM countries WHERE countries.id = country_id) ORDER BY RANDOM() LIMIT 1);")
+    file.puts("UPDATE trips SET trip_price = 
+            ((SELECT price_for_a_person from hotels where hotels.id = hotel_id) +
+            #{price}) * number_of_nights * (SELECT number_of_stars from hotels where hotels.id = hotel_id);")
+end
+
 def insert_into_flights(file)
     file.puts("INSERT INTO flights (price, meal_included, flight_duration,  departure_time, aircompany_id,  departure_airport_id, arrival_airport_id) VALUES")
-    (0...100).each do 
+    (0...500).each do 
         price = Faker::Number.positive.round
         meal_included = [true, false].sample
         flight_duration = Faker::Number.between(from: 1, to: 20)
-        file.puts("\t(\'#{price}\', \'#{meal_included}\', \'#{flight_duration}\', \'#{Faker::Time.forward(days: 7)}\', (SELECT id FROM aircompanies ORDER BY random() LIMIT 1), (SELECT id FROM airports ORDER BY random() LIMIT 1), (SELECT id FROM airports ORDER BY random() LIMIT 1)),")
+        file.puts("\t(\'#{price}\', \'#{meal_included}\', \'#{flight_duration}\', \'#{Faker::Time.forward(days: 30)}\', (SELECT id FROM aircompanies ORDER BY random() LIMIT 1), 
+            (SELECT id FROM airports ORDER BY random() LIMIT 1), 
+            (SELECT id FROM airports ORDER BY random() LIMIT 1)),")
     end
     price = Faker::Number.positive.round
     meal_included = [true, false].sample
     flight_duration = Faker::Number.between(from: 1, to: 20)
-    file.puts("\t(\'#{price}\', \'#{meal_included}\', \'#{flight_duration}\', \'#{Faker::Time.forward(days: 7)}\', (SELECT id FROM aircompanies ORDER BY random() LIMIT 1), (SELECT id FROM airports ORDER BY random() LIMIT 1), (SELECT id FROM airports ORDER BY random() LIMIT 1));")
-end
+    file.puts("\t(\'#{price}\', \'#{meal_included}\', \'#{flight_duration}\', \'#{Faker::Time.forward(days: 30)}\', (SELECT id FROM aircompanies ORDER BY random() LIMIT 1), 
+        (SELECT id FROM airports ORDER BY random() LIMIT 1), 
+        (SELECT id FROM airports ORDER BY random() LIMIT 1));")
+    end
 
-def insert_into_trips(file)
-    file.puts("INSERT INTO trips (departure_flight_id, hotel_id, meal) VALUES")
+def insert_into_routes(file)
+    trip_id = Faker::Number.between(from: 1, to: 500)
+    file.puts("INSERT INTO routes (where_from, where_to trip_id) VALUES")
     (0...100).each do 
-        meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
-        file.puts("\t((SELECT id from flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1), (SELECT id FROM hotels ORDER BY random() LIMIT 1),  \'#{meal}'\ ),")
+        file.puts("\t((SELECT id from cities where cities.country_id = 32 order by random() limit 1), 
+        SELECT ),")
     end
-    meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
-    file.puts("\t((SELECT id from flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1), (SELECT id FROM hotels ORDER BY random() LIMIT 1),  \'#{meal}'\ );")
-    file.puts("UPDATE trips SET arrival_flight_id = (SELECT id from flights where flights.departure_time > (SELECT departure_time FROM flights where flights.id = trips.departure_flight_id) ORDER BY random() LIMIT 1),
-        departure_date = (SELECT departure_time from flights where flights.id = trips.departure_flight_id );")
-    file.puts("UPDATE trips SET arrival_date = (SELECT departure_time from flights where flights.id = trips.arrival_flight_id );")
+    file.puts("\t((SELECT id from cities order by random() limit 1),
+    (SELECT id FROM trips ORDER BY RANDOM() LIMIT 1));")
+
+    file.puts("UPDATE routes SET where_to = (SELECT id from cities WHERE cities.id != routes.where_from ORDER BY RANDOM() LIMIT 1);")
+    file.puts("UPDATE routes SET departure_flight_id = 
+        (SELECT id FROM flights where flights.departure_time != (SELECT max(departure_time) from flights) ORDER BY random() LIMIT 1);")
+    
+        file.puts("UPDATE routes SET arrival_flight_id = 
+            (select id from flights 
+            where floor(extract(epoch FROM 
+                (flights.departure_time - (select departure_date from trips where routes.trip_id = trips.id  ORDER BY RANDOM() LIMIT 1))/86400)) = 5 ORDER BY RANDOM() LIMIT 1)
+		
+
+        (SELECT id from flights where 
+		(select floor(extract(epoch FROM (select ((select departure_time from flights where flights.id = routes.departure_flight_id) - flights.departure_time) from flights where flights.id = routes.departure_flight_id)/86400)))
+        = (select number_of_nights from trips where trips.id = routes.trip_id));");
+    file.puts ("UPDATE routes SET departure_date = (SELECT departure_time from flights where flights.id = routes.departure_flight_id);")
+    file.puts ("UPDATE routes SET arrival_date = (SELECT departure_time from flights where flights.id = routes.arrival_flight_id );")
+    file.puts("UPDATE routes SET price = 
+        ((SELECT trip_price from trips where trips.id = routes.trip_id) +
+        (SELECT price from flights where flights.id = departure_flight_id) +
+        (SELECT price from flights where flights.id = arrival_flight_id));")
 end
 
-def insert_into_workers(file)
-    file.puts("INSERT INTO workers (full_name, phone, birthday_date, salary) VALUES")
-    (0...100).each do 
-        name = Faker::Name.name_with_middle
-        phone = Faker::PhoneNumber.phone_number_with_country_code
-        bday = Faker::Date.birthday
-        salary = Faker::Number.positive.round
-        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, #{salary}),")
-    end
-    name = Faker::Name.name_with_middle
-    phone = Faker::PhoneNumber.phone_number_with_country_code
-    bday = Faker::Date.birthday
-    salary = Faker::Number.positive.round
-    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, #{salary});")
-end
 
-def insert_into_orders(file)
-    file.puts("INSERT INTO orders (number_of_people, trip_id, client_id, worker_id) VALUES")
-    (0...5000).each do 
-        number = rand(1...10)
-        file.puts("\t(#{number}, (SELECT id FROM trips ORDER BY random() LIMIT 1), (SELECT id FROM clients ORDER BY random() LIMIT 1), (SELECT id FROM workers ORDER BY random() LIMIT 1)),")
-    end
-    number = rand(1...10)
-    file.puts("\t(#{number}, (SELECT id FROM trips ORDER BY random() LIMIT 1), (SELECT id FROM clients ORDER BY random() LIMIT 1), (SELECT id FROM workers ORDER BY random() LIMIT 1));")
+# def insert_into_payments_and_orders(file)
+#     (0...100).each do 
+#         file.puts("INSERT INTO payments (number_of_people, route_id, client_id, worker_id) VALUES")
+#         number = rand(1...10)
+#         file.puts("\t(#{number}, (SELECT id FROM routes ORDER BY random() LIMIT 1), (SELECT id FROM clients ORDER BY random() LIMIT 1), (SELECT id FROM workers ORDER BY random() LIMIT 1));")
+#         (0...number).each do
+#             file.puts("INSERT INTO orders (tourist_id, payment_id) VALUES")
+#             file.puts("\t((SELECT id FROM tourists ORDER BY random() LIMIT 1), (SELECT id FROM payments ORDER BY random() LIMIT 1));")
+#         end
+#     end
 
-    file.puts("UPDATE orders SET order_time = (SELECT departure_date FROM trips WHERE id = orders.trip_id),
-    total_price = orders.number_of_people * 
-    ((SELECT price FROM flights WHERE flights.id = 
-        (SELECT departure_flight_id from trips where trips.id = orders.trip_id) LIMIT 1) 
-    +
-    (SELECT price FROM flights WHERE flights.id = 
-        (SELECT arrival_flight_id from trips where trips.id = orders.trip_id)) 
-    +
-    ((SELECT price_for_a_person FROM hotels WHERE hotels.id = 
-        (SELECT hotel_id from trips where trips.id = orders.trip_id)) * (
-            SELECT (arrival_date - departure_date) FROM trips WHERE trips.id = orders.trip_id LIMIT 1
-        ))
-    )")
-end
+#     file.puts("UPDATE payments SET total_price = number_of_people *
+#         (select price from routes where routes.id = payments.route_id)")
+# end
 
 insert_into_all_tables

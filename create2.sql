@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS "orders" CASCADE;
+DROP TABLE IF EXISTS "orders" CASCADE; 
+DROP TABLE IF EXISTS "payments" CASCADE;
 DROP TABLE IF EXISTS "route" CASCADE;
 DROP TABLE IF EXISTS "trips" CASCADE;
 DROP TABLE IF EXISTS "flights" CASCADE;
@@ -71,8 +72,7 @@ CREATE TABLE "workers" (
     phone varchar(255) default NULL,
     passport varchar(255) UNIQUE,
     birthday_date date default NULL,
-    salary integer default 0,
-    work_position varchar(255)
+    salary integer default 0
 );
 
 CREATE TABLE "hotels" (
@@ -95,20 +95,6 @@ CREATE TABLE "hotels" (
     FOREIGN KEY (city_id) REFERENCES cities (id)  ON DELETE CASCADE
 );
 
-CREATE TABLE "flights" (
-	id SERIAL PRIMARY KEY,
-	departure_time timestamp,
-    price integer,
-    meal_included boolean default false,
-    flight_duration integer,
-    departure_airport_id integer NULL,
-    FOREIGN KEY (departure_airport_id) REFERENCES airports (id)  ON DELETE CASCADE,
-    arrival_airport_id integer NULL,
-    FOREIGN KEY (arrival_airport_id) REFERENCES airports (id) ON DELETE CASCADE,
-    aircompany_id integer NULL,
-    FOREIGN KEY (aircompany_id) REFERENCES aircompanies (id)  ON DELETE CASCADE
-);
-
 CREATE TABLE "trips" (
 	id SERIAL PRIMARY KEY,
     country_id integer NULL,
@@ -123,29 +109,53 @@ CREATE TABLE "trips" (
     FOREIGN KEY (hotel_id) REFERENCES hotels (id)  ON DELETE CASCADE
 );
 
+CREATE TABLE "flights" (
+	id SERIAL PRIMARY KEY,
+	departure_time timestamp,
+    price integer,
+    meal_included boolean default false,
+    flight_duration integer,
+    departure_airport_id integer NULL,
+    FOREIGN KEY (departure_airport_id) REFERENCES airports (id)  ON DELETE CASCADE,
+    arrival_airport_id integer NULL,
+    FOREIGN KEY (arrival_airport_id) REFERENCES airports (id) ON DELETE CASCADE,
+    aircompany_id integer NULL,
+    FOREIGN KEY (aircompany_id) REFERENCES aircompanies (id)  ON DELETE CASCADE
+);
+
+
 CREATE TABLE "routes" (
+    id SERIAL PRIMARY KEY,
     where_from integer NULL,
-    FOREIGN KEY (where_from) REFERENCES countries (id)  ON DELETE CASCADE,
+    FOREIGN KEY (where_from) REFERENCES cities (id)  ON DELETE CASCADE,
     where_to integer NULL,
-    FOREIGN KEY (where_to) REFERENCES countries (id)  ON DELETE CASCADE,
+    FOREIGN KEY (where_to) REFERENCES cities (id)  ON DELETE CASCADE,
     departure_date date,
     arrival_date date,
     trip_id integer NULL,
+    price integer,
     departure_flight_id integer NULL,
     FOREIGN KEY (departure_flight_id) REFERENCES flights (id)  ON DELETE CASCADE,
     arrival_flight_id integer NULL,
     FOREIGN KEY (arrival_flight_id) REFERENCES flights (id)  ON DELETE CASCADE
 );
 
--- CREATE TABLE "orders" (
---     id SERIAL PRIMARY KEY,
---     number_of_people integer default 1,
---     order_time timestamp,
---     total_price integer,
---     client_id integer NULL,
---     FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE,
---     worker_id integer NULL,
---     FOREIGN KEY (worker_id) REFERENCES workers (id) ON DELETE CASCADE,
---     trip_id integer NULL,
---     FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
--- )
+CREATE TABLE "payments" (
+    id SERIAL PRIMARY KEY,
+    number_of_people integer default 1,
+    total_price integer,
+    client_id integer NULL,
+    FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE,
+    worker_id integer NULL,
+    FOREIGN KEY (worker_id) REFERENCES workers (id) ON DELETE CASCADE,
+    route_id integer NULL,
+    FOREIGN KEY (route_id) REFERENCES routes (id) ON DELETE CASCADE
+);
+
+CREATE TABLE "orders" (
+    id SERIAL PRIMARY KEY,
+    tourist_id integer NULL,
+    FOREIGN KEY (tourist_id) REFERENCES tourists (id) ON DELETE CASCADE,
+    payment_id integer NULL,
+    FOREIGN KEY (payment_id) REFERENCES payments (id) ON DELETE CASCADE
+)
