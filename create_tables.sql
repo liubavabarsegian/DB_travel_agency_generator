@@ -51,7 +51,7 @@ CREATE TABLE "people" (
 
 CREATE TABLE "clients" (
 	id SERIAL PRIMARY KEY,
-	person_id integer NULL,
+	person_id integer NULL UNIQUE,
 	FOREIGN KEY (person_id) REFERENCES people (id)  ON DELETE CASCADE,
     bonus_points integer,
     has_client_card boolean ---for 10% discount
@@ -59,7 +59,7 @@ CREATE TABLE "clients" (
 
 CREATE TABLE "tourists" (
     id SERIAL PRIMARY KEY,
-    person_id integer NULL,
+    person_id integer NULL UNIQUE,
 	FOREIGN KEY (person_id) REFERENCES people (id)  ON DELETE CASCADE,
     passport varchar(255) UNIQUE,
     foreign_passport varchar(255) UNIQUE,
@@ -68,7 +68,7 @@ CREATE TABLE "tourists" (
 
 CREATE TABLE "workers" (
 	id SERIAL PRIMARY KEY,
-	person_id integer NULL,
+	person_id integer NULL UNIQUE,
 	FOREIGN KEY (person_id) REFERENCES people (id)  ON DELETE CASCADE,
     passport varchar(255) UNIQUE,
     salary integer default 0
