@@ -138,7 +138,6 @@ CREATE TABLE "trips" (
     departure_date date,
     arrival_date date,
     trip_price integer,
-    meal varchar(255),
     departure_flight_id integer NULL,
     FOREIGN KEY (departure_flight_id) REFERENCES flights (id)  ON DELETE CASCADE,
     arrival_flight_id integer NULL,

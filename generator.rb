@@ -3,16 +3,15 @@ require 'faker'
 def insert_into_all_tables
     Faker::Config.locale = :ru
     File.open('better_data.sql', 'w') do |file|
-        insert_into_people(file)
-        insert_into_clients(file)
-        insert_into_tourists(file)
-        insert_into_workers(file)
-        insert_into_aircompanies(file)
-        insert_into_airports(file)
-        insert_into_hotels(file)
-        insert_into_flights(file)
-        insert_into_insurances(file)
-        # insert_into_trips(file)
+        # insert_into_people(file)
+        # insert_into_clients(file)
+        # insert_into_tourists(file)
+        # insert_into_workers(file)
+        # insert_into_aircompanies(file)
+        # insert_into_airports(file)
+        # insert_into_hotels(file)
+        # insert_into_flights(file)
+        insert_into_trips(file)
     end
 end
 
@@ -160,7 +159,7 @@ def insert_into_flights(file)
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 60)
+        departure_time = Faker::Time.forward(days: 30)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -177,7 +176,7 @@ def insert_into_flights(file)
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 60)
+        departure_time = Faker::Time.forward(days: 30)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -194,7 +193,7 @@ def insert_into_flights(file)
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 90)
+        departure_time = Faker::Time.forward(days: 70)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -211,7 +210,7 @@ def insert_into_flights(file)
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.backward(days: 90)
+        departure_time = Faker::Time.backward(days: 70)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -227,33 +226,40 @@ def insert_into_flights(file)
 end
 
 
-
 def insert_into_trips(file)
-    file.puts("INSERT INTO trips (country_id, trip_type, number_of_nights, excursions_included, 
-        coefficient_for_seasons, meal) VALUES")
-    (0...100).each do 
-        trip_type = ["Оздоровительный", "Культурный", "Индивидуальный", "Гастрономический", "Пляжный"].sample
-        meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
-        number_of_nights = Faker::Number.between(from: 3,to: 14)
-        excursions_included = [true, false].sample
-        coef = Faker::Number.between(from: 1.0, to: 3.0)
-        file.puts("\t((SELECT id FROM countries ORDER BY random() LIMIT 1), 
-            \'#{trip_type}\', #{number_of_nights}, \'#{excursions_included}\', #{coef}, \'#{meal}'\ ),")
+    (0...100).each do
+        file.puts("INSERT INTO trips (client_id, worker_id, tourist_id, 
+            country_id, meal_for_flight, has_luggage) VALUES")
+        file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
+        (SELECT id FROM workers ORDER BY random() LIMIT 1),
+        (SELECT id FROM tourists ORDER BY random() LIMIT 1),
+        (SELECT id FROM countries where id != 32 ORDER BY random() LIMIT 1),
+        \'#{[true, false].sample}\', \'#{[true, false].sample}\');")
     end
-    trip_type = ["Оздоровительный", "Культурный", "Индивидуальный", "Гастрономический", "Пляжный"].sample
-        meal = ["Room Only", "Bed and Breakfast", "Half Board", "Half Board plus", "Full Board", "Full Board plus", "All inclusive", "Ultra All Inclusive"].sample
-        number_of_nights = Faker::Number.between(from: 3,to: 14)
-        excursions_included = [true, false].sample
-        coef = Faker::Number.between(from: 1.0, to: 3.0)
-        file.puts("\t((SELECT id FROM countries ORDER BY random() LIMIT 1), 
-            \'#{trip_type}\', #{number_of_nights}, \'#{excursions_included}\', #{coef}, \'#{meal}'\ );")
-    
 
-    price = Faker::Number.between(from: 50, to: 300) #плата за тур без учета гостишки
-    file.puts("UPDATE trips SET hotel_id = (SELECT id from hotels WHERE trips.country_id = (SELECT id FROM countries WHERE countries.id = country_id) ORDER BY RANDOM() LIMIT 1);")
-    file.puts("UPDATE trips SET trip_price = 
-            ((SELECT price_for_a_person from hotels where hotels.id = hotel_id) +
-            #{price}) * number_of_nights * (SELECT number_of_stars from hotels where hotels.id = hotel_id);")
+    file.puts("UPDATE trips SET hotel_id = 
+        (SELECT id from hotels where hotels.city_id IN  (select id from cities 
+            WHERE cities.country_id = trips.country_id) order by random() limit 1),
+        departure_flight_id = 
+        (select id from flights where arrival_airport_id IN 
+            (select id from airports where city_id IN 
+                (select city_id from countries where countries.id = trips.country_id)) order by random() limit 1);")
+    file.puts("UPDATE trips SET 
+        departure_date = 
+            (select departure_time from flights where flights.id = trips.departure_flight_id),
+        arrival_flight_id = ((select id from flights where 
+                (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))))) > 3 
+            AND departure_airport_id IN 
+            (select id from airports where city_id IN 
+                (select city_id from countries where countries.id = trips.country_id))) order by random() limit 1);")
+    file.puts("UPDATE trips SET 
+        arrival_date = 
+            (select departure_time from flights where flights.id = trips.arrival_flight_id"),
+    file.puts("UPDATE trips set number_of_nights = (trips.arrival_date - trips.departure_date);")
+
+    #insurance id
+    #trip price
+    
 end
 
 insert_into_all_tables
