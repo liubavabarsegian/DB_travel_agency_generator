@@ -3,16 +3,16 @@ require 'faker'
 def insert_into_all_tables
     Faker::Config.locale = :ru
     File.open('better_data.sql', 'w') do |file|
-        # insert_into_people(file)
-        # insert_into_clients(file)
-        # insert_into_tourists(file)
-        # insert_into_workers(file)
-        # insert_into_aircompanies(file)
-        # insert_into_airports(file)
-        # insert_into_hotels(file)
+        insert_into_people(file)
+        insert_into_clients(file)
+        insert_into_tourists(file)
+        insert_into_workers(file)
+        insert_into_aircompanies(file)
+        insert_into_airports(file)
+        insert_into_hotels(file)
         insert_into_flights(file)
+        insert_into_insurances(file)
         # insert_into_trips(file)
-        # insert_into_insurances(file)
     end
 end
 
@@ -154,16 +154,76 @@ def insert_into_hotels(file)
 end
 
 def insert_into_flights(file)
-    file.puts("INSERT INTO flights (flight_number, departure_time, price, flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
-    (0...500).each do 
-        flight_number = 
-        departure_time = 
-        price = 
+    #fligths from Russia to other countires (any)
+    (0...100).each do 
+        file.puts("INSERT INTO flights 
+            (flight_number, departure_time, price, 
+            flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
+        flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
+        departure_time = Faker::Time.forward(days: 60)
+        price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
-        file.puts("\t(\'#{price}\', \'#{meal_included}\', \'#{flight_duration}\', \'#{Faker::Time.forward(days: 30)}\', (SELECT id FROM aircompanies ORDER BY random() LIMIT 1), 
-            (SELECT id FROM airports ORDER BY random() LIMIT 1), 
-            (SELECT id FROM airports ORDER BY random() LIMIT 1)),")
+        file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
+            (SELECT id FROM airports WHERE city_id IN (select id from cities where country_id = 32) ORDER BY random() LIMIT 1), 
+            (SELECT id FROM airports WHERE city_id NOT IN (select id from cities where country_id = 32) ORDER BY random() LIMIT 1),
+            (SELECT id FROM aircompanies ORDER BY random() LIMIT 1));")
     end
+
+    #from Moscow to popular countries
+    # Турция 39, Тунис 38, Таиланд 36 , ОАЭ 30 Мальдивы 27 
+    #Куба 24 Кипр 22 Испания 18, Египет 13, Грузия 11,Абхазия 1
+    (0...500).each do 
+        file.puts("INSERT INTO flights 
+            (flight_number, departure_time, price, 
+            flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
+        flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
+        departure_time = Faker::Time.forward(days: 60)
+        price = Faker::Number.between(from: 10000, to:80000)
+        flight_duration = Faker::Number.between(from: 1, to: 20)
+        file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
+            (SELECT id FROM airports WHERE city_id IN (select id from cities where country_id = 32) ORDER BY random() LIMIT 1), 
+            (SELECT id FROM airports WHERE city_id NOT IN (select id from cities where country_id = 32)
+                AND city_id IN 
+                (select id from cities where country_id IN (39, 38, 36, 30, 27, 24, 22, 18, 13, 11, 1)) ORDER BY random() LIMIT 1), 
+            (SELECT id FROM aircompanies ORDER BY random() LIMIT 1));")
+    end
+
+    #fligths to Russia from other countires (any)
+    (0...100).each do 
+        file.puts("INSERT INTO flights 
+            (flight_number, departure_time, price, 
+            flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
+        flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
+        departure_time = Faker::Time.forward(days: 90)
+        price = Faker::Number.between(from: 10000, to:80000)
+        flight_duration = Faker::Number.between(from: 1, to: 20)
+        file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
+            (SELECT id FROM airports WHERE city_id NOT IN (select id from cities where country_id = 32) ORDER BY random() LIMIT 1),
+            (SELECT id FROM airports WHERE city_id IN (select id from cities where country_id = 32) ORDER BY random() LIMIT 1), 
+            (SELECT id FROM aircompanies ORDER BY random() LIMIT 1));")
+    end
+
+    #to Russia from popular countries
+    # Турция 39, Тунис 38, Таиланд 36 , ОАЭ 30 Мальдивы 27 
+    #Куба 24 Кипр 22 Испания 18, Египет 13, Грузия 11,Абхазия 1
+    (0...500).each do 
+        file.puts("INSERT INTO flights 
+            (flight_number, departure_time, price, 
+            flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
+        flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
+        departure_time = Faker::Time.backward(days: 90)
+        price = Faker::Number.between(from: 10000, to:80000)
+        flight_duration = Faker::Number.between(from: 1, to: 20)
+        file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
+            (SELECT id FROM airports WHERE city_id NOT IN (select id from cities where country_id = 32) 
+                AND city_id IN 
+                (select id from cities where country_id IN (39, 38, 36, 30, 27, 24, 22, 18, 13, 11, 1) ORDER BY random() LIMIT 1) ORDER BY random() LIMIT 1), 
+            (SELECT id FROM airports WHERE city_id IN (select id from cities where country_id = 32 ORDER BY random() limit 1) ORDER BY random() LIMIT 1), 
+            (SELECT id FROM aircompanies ORDER BY random() LIMIT 1));")
+    end
+    file.puts("UPDATE flights SET
+        country_from = (select id from countries where countries.id = (select country_id from cities where cities.id = (select city_id from airports where airports.id = departure_airport_id))),
+        country_where_to = (select id from countries where countries.id = (select country_id from cities where cities.id = (select city_id from airports where airports.id = arrival_airport_id)));")
 end
 
 
