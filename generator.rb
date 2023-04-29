@@ -1,18 +1,75 @@
 require 'faker'
 
 def insert_into_all_tables
+    Faker::Config.locale = :ru
     File.open('better_data.sql', 'w') do |file|
-        insert_into_aircompanies(file)
-        insert_into_airports(file)
-        insert_into_hotels(file)
+        insert_into_people(file)
         insert_into_clients(file)
         insert_into_tourists(file)
         insert_into_workers(file)
-        insert_into_trips(file)
-        insert_into_flights(file)
-        insert_into_routes(file)
+        insert_into_aircompanies(file)
+        # insert_into_airports(file)
+        # insert_into_hotels(file)
+        # insert_into_tourists(file)
+        # insert_into_trips(file)
+        # insert_into_flights(file)
+        # insert_into_routes(file)
         # insert_into_payments_and_orders(file)
     end
+end
+
+def insert_into_people(file)
+    file.puts("INSERT INTO people (full_name, email, birthday_date, phone) VALUES")
+    (0...200).each do 
+        name = Faker::Name.name_with_middle
+        phone = Faker::PhoneNumber.phone_number_with_country_code
+        bday = Faker::Date.birthday
+        email = Faker::Internet.email
+        file.puts("\t(\'#{name.tr("'", "")}\', \'#{email}\', \'#{bday}\', \'#{phone}\'),")
+    end 
+    name = Faker::Name.name_with_middle
+    phone = Faker::PhoneNumber.phone_number_with_country_code
+    bday = Faker::Date.birthday
+    email = Faker::Internet.email
+    file.puts("\t(\'#{name.tr("'", "")}\', \'#{email}\', \'#{bday}\', \'#{phone}\');")
+end
+
+def insert_into_clients(file)
+    file.puts("INSERT INTO clients (person_id, has_client_card, bonus_points) VALUES")
+    (0...100).each do 
+        has_member_card = [true, false].sample
+        bonus_points = 100
+        file.puts("\t((SELECT id from people ORDER BY RANDOM() limit 1), \'#{has_member_card}\', #{bonus_points}),")
+    end
+    has_member_card = [true, false].sample
+    bonus_points = 100
+    file.puts("\t((SELECT id from people ORDER BY RANDOM() limit 1), \'#{has_member_card}\', #{bonus_points});")
+end
+
+def insert_into_tourists(file)
+    file.puts("INSERT INTO tourists (person_id, passport, foreign_passport, has_visa) VALUES")
+    (0...100).each do 
+        passport = Faker::IDNumber.danish_id_number
+        f_passport = Faker::IDNumber.danish_id_number
+        has_visa = [true, false].sample
+        file.puts("\t((SELECT id from people ORDER BY RANDOM() limit 1), \'#{passport}\', \'#{f_passport}\', #{has_visa}),")
+    end
+    passport = Faker::IDNumber.danish_id_number
+    f_passport = Faker::IDNumber.danish_id_number
+    has_visa = [true, false].sample
+    file.puts("\t((SELECT id from people ORDER BY RANDOM() limit 1),  \'#{passport}\', \'#{f_passport}\', #{has_visa});")
+end
+
+def insert_into_workers(file)
+    file.puts("INSERT INTO workers (person_id, passport, salary) VALUES")
+    (0...100).each do 
+        passport = Faker::IDNumber.danish_id_number
+        salary = Faker::Number.between(from: 10000, to:300000)
+        file.puts("\t((SELECT id from people ORDER BY RANDOM() limit 1),  \'#{passport}\', #{salary}),")
+    end
+    passport = Faker::IDNumber.danish_id_number
+    salary = Faker::Number.between(from: 10000, to:300000)
+    file.puts("\t((SELECT id from people ORDER BY RANDOM() limit 1),  \'#{passport}\', #{salary});")
 end
 
 def insert_into_aircompanies(file)
@@ -28,6 +85,8 @@ def insert_into_aircompanies(file)
     office_address = Faker::Address.full_address
     file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}\', \'#{office_address.tr("'", "")}\' );")
 end
+
+
 
 def insert_into_airports(file)
     file.puts("INSERT INTO airports (name, city_id) VALUES")
@@ -83,61 +142,10 @@ def insert_into_hotels(file)
     #{wifi}, \'#{aquapark}\', #{coef});")
 end
 
-def insert_into_clients(file)
-    file.puts("INSERT INTO clients (name, phone, has_client_card, bonus_points ) VALUES")
-    (0...100).each do 
-        name = Faker::Name.first_name_neutral
-        phone = Faker::PhoneNumber.phone_number_with_country_code
-        has_member_card = [true, false].sample
-        bonus_points = 100
-        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{has_member_card}\', #{bonus_points}),")
-    end
-    name = Faker::Name.first_name_neutral
-    phone = Faker::PhoneNumber.phone_number_with_country_code
-    has_member_card = [true, false].sample
-    bonus_points = 100
-    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{has_member_card}\', #{bonus_points});")
-end
 
-def insert_into_tourists(file)
-    file.puts("INSERT INTO tourists (name, phone, birthday_date, passport, foreign_passport, has_visa) VALUES")
-    (0...100).each do 
-        name = Faker::Name.first_name_neutral
-        phone = Faker::PhoneNumber.phone_number_with_country_code
-        bday = Faker::Date.birthday
-        passport = Faker::IDNumber.danish_id_number
-        f_passport = Faker::IDNumber.danish_id_number
-        visa = [true, false].sample
-        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, \'#{passport}\',
-        \'#{f_passport}\', \'#{visa}\'),")
-    end
-    name = Faker::Name.first_name_neutral
-    phone = Faker::PhoneNumber.phone_number_with_country_code
-    bday = Faker::Date.birthday
-    passport = Faker::IDNumber.danish_id_number
-    f_passport = Faker::IDNumber.danish_id_number
-    visa = [true, false].sample
-    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{bday}'\, \'#{passport}\',
-    \'#{f_passport}\', \'#{visa}\');")
-end
 
-def insert_into_workers(file)
-    file.puts("INSERT INTO workers (full_name, phone, passport, birthday_date, salary) VALUES")
-    (0...100).each do 
-        name = Faker::Name.name_with_middle
-        phone = Faker::PhoneNumber.phone_number_with_country_code
-        passport = Faker::IDNumber.danish_id_number
-        bday = Faker::Date.birthday
-        salary = Faker::Number.positive.round
-        file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{passport}\', \'#{bday}'\, #{salary}),")
-    end
-    name = Faker::Name.name_with_middle
-    phone = Faker::PhoneNumber.phone_number_with_country_code
-    passport = Faker::IDNumber.danish_id_number
-    bday = Faker::Date.birthday
-    salary = Faker::Number.positive.round
-    file.puts("\t(\'#{name.tr("'", "")}\', \'#{phone}'\, \'#{passport}\', \'#{bday}'\, #{salary});")
-end
+
+
 
 
 def insert_into_trips(file)
