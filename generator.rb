@@ -3,14 +3,14 @@ require 'faker'
 def insert_into_all_tables
     Faker::Config.locale = :ru
     File.open('better_data.sql', 'w') do |file|
-        # insert_into_people(file)
-        # insert_into_clients(file)
-        # insert_into_tourists(file)
-        # insert_into_workers(file)
-        # insert_into_aircompanies(file)
-        # insert_into_airports(file)
-        # insert_into_hotels(file)
-        # insert_into_flights(file)
+        insert_into_people(file)
+        insert_into_clients(file)
+        insert_into_tourists(file)
+        insert_into_workers(file)
+        insert_into_aircompanies(file)
+        insert_into_airports(file)
+        insert_into_hotels(file)
+        insert_into_flights(file)
         insert_into_trips(file)
     end
 end
@@ -20,7 +20,7 @@ def insert_into_people(file)
     (0...200).each do 
         name = Faker::Name.name_with_middle
         phone = Faker::PhoneNumber.phone_number_with_country_code
-        bday = Faker::Date.birthday(min_age: 3, max_age: 60)
+        bday = Faker::Date.birthday(min_age: 3, max_age: 50)
         email = Faker::Internet.email
         file.puts("\t(\'#{name.tr("'", "")}\', \'#{email}\', \'#{bday}\', \'#{phone}\'),")
     end 
@@ -248,18 +248,19 @@ def insert_into_trips(file)
         departure_date = 
             (select departure_time from flights where flights.id = trips.departure_flight_id),
         arrival_flight_id = ((select id from flights where 
-                (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))))) > 3 
-            AND departure_airport_id IN 
+                (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))/86400))) >= 3 
+                AND
+                (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))/86400))) <= 30
+                AND departure_airport_id IN 
             (select id from airports where city_id IN 
                 (select city_id from countries where countries.id = trips.country_id))) order by random() limit 1);")
     file.puts("UPDATE trips SET 
         arrival_date = 
-            (select departure_time from flights where flights.id = trips.arrival_flight_id"),
+            (select departure_time from flights where flights.id = trips.arrival_flight_id);")
     file.puts("UPDATE trips set number_of_nights = (trips.arrival_date - trips.departure_date);")
+    file.puts("UPDATE trips SET insurance_id = (SELECT id from insurances order by random()+id limit 1);")
 
-    #insurance id
     #trip price
-    
 end
 
 insert_into_all_tables
