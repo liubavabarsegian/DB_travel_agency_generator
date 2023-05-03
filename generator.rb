@@ -11,13 +11,15 @@ def insert_into_all_tables
         insert_into_airports(file)
         insert_into_hotels(file)
         insert_into_flights(file)
+    end
+    File.open('trips.sql', 'w') do |file|
         insert_into_trips(file)
     end
 end
 
 def insert_into_people(file)
     file.puts("INSERT INTO people (full_name, email, birthday_date, phone) VALUES")
-    (0...200).each do 
+    (0...500).each do 
         name = Faker::Name.name_with_middle
         phone = Faker::PhoneNumber.phone_number_with_country_code
         bday = Faker::Date.birthday(min_age: 3, max_age: 50)
@@ -32,39 +34,35 @@ def insert_into_people(file)
 end
 
 def insert_into_clients(file)
-    (0...150).each do 
+    (0...300).each do 
         file.puts("INSERT INTO clients (person_id, has_client_card, bonus_points) VALUES")
         has_member_card = [true, false].sample
         bonus_points = 100
         file.puts("\t((select id from people 
                     WHERE date_part('year',age(birthday_date)) >= 18
-                    AND id NOT IN (select id from clients)
                     ORDER BY RANDOM() limit 1), \'#{has_member_card}\', #{bonus_points});")
     end
 end
 
 def insert_into_tourists(file)
-    (0...200).each do 
+    (0...500).each do |n|
         file.puts("INSERT INTO tourists (person_id, passport, foreign_passport, has_visa) VALUES")
         passport = Faker::IDNumber.danish_id_number
         f_passport = Faker::IDNumber.danish_id_number
         has_visa = [true, false].sample
         file.puts("\t((select id from people 
-            WHERE date_part('year',age(birthday_date)) >= 18
-            AND id NOT IN (select id from tourists)
-            ORDER BY RANDOM() limit 1), \'#{passport}\', \'#{f_passport}\', #{has_visa});")
+            WHERE id = #{500-n}), \'#{passport}\', \'#{f_passport}\', #{has_visa});")
     end
 end
 
 def insert_into_workers(file)
-    (0...150).each do 
+    (0...200).each do  |n|
         file.puts("INSERT INTO workers (person_id, passport, salary) VALUES")
         passport = Faker::IDNumber.danish_id_number
         salary = Faker::Number.between(from: 10000, to:300000)
         file.puts("\t((select id from people 
             WHERE date_part('year',age(birthday_date)) >= 18
-            AND id NOT IN (select id from workers)
-            ORDER BY RANDOM() limit 1),  \'#{passport}\', #{salary});")
+            WHERE id = #{400-n}),  \'#{passport}\', #{salary});")
     end
 end
 
@@ -92,11 +90,11 @@ end
 def insert_into_airports(file)
     file.puts("INSERT INTO airports (name, city_id) VALUES")
     (0...150).each do 
-        name = Faker::Travel::Airport.name(size: "large", region: "united_states")
-        file.puts("\t(\'#{name.tr("'", "")}\', (SELECT id FROM cities ORDER BY random() LIMIT 1)),")
+        # name = Faker::Travel::Airport.name(size: "large", region: "united_states")
+        file.puts("\t( CONCAT('Аэропорт ',(select name from cities where id = city_id)) + 'Airport', (SELECT id FROM cities ORDER BY random() LIMIT 1)),")
     end
-    name = Faker::Travel::Airport.name(size: "large", region: "united_states")
-    file.puts("\t(\'#{name.tr("'", "")}\', (SELECT id FROM cities ORDER BY random() LIMIT 1));")
+    # name = Faker::Travel::Airport.name(size: "large", region: "united_states")
+    file.puts("\t( CONCAT('Аэропорт ',(select name from cities where id = city_id)), (SELECT id FROM cities ORDER BY random() LIMIT 1));")
 end
 
 def insert_into_hotels(file)
@@ -154,12 +152,12 @@ end
 
 def insert_into_flights(file)
     #fligths from Russia to other countires (any)
-    (0...100).each do 
+    (0...500).each do 
         file.puts("INSERT INTO flights 
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 30)
+        departure_time = Faker::Time.forward(days: 60)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -171,12 +169,12 @@ def insert_into_flights(file)
     #from Moscow to popular countries
     # Турция 39, Тунис 38, Таиланд 36 , ОАЭ 30 Мальдивы 27 
     #Куба 24 Кипр 22 Испания 18, Египет 13, Грузия 11,Абхазия 1
-    (0...500).each do 
+    (0...1000).each do 
         file.puts("INSERT INTO flights 
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 30)
+        departure_time = Faker::Time.forward(days: 60)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -188,12 +186,12 @@ def insert_into_flights(file)
     end
 
     #fligths to Russia from other countires (any)
-    (0...100).each do 
+    (0...500).each do 
         file.puts("INSERT INTO flights 
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 70)
+        departure_time = Faker::Time.forward(days: 120)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -205,12 +203,12 @@ def insert_into_flights(file)
     #to Russia from popular countries
     # Турция 39, Тунис 38, Таиланд 36 , ОАЭ 30 Мальдивы 27 
     #Куба 24 Кипр 22 Испания 18, Египет 13, Грузия 11,Абхазия 1
-    (0...500).each do 
+    (0...1000).each do 
         file.puts("INSERT INTO flights 
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.backward(days: 70)
+        departure_time = Faker::Time.backward(days: 120)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -227,7 +225,7 @@ end
 
 
 def insert_into_trips(file)
-    (0...100).each do
+    (0...2000).each do
         file.puts("INSERT INTO trips (client_id, worker_id, tourist_id, 
             country_id, meal_for_flight, has_luggage) VALUES")
         file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
@@ -258,9 +256,52 @@ def insert_into_trips(file)
         arrival_date = 
             (select departure_time from flights where flights.id = trips.arrival_flight_id);")
     file.puts("UPDATE trips set number_of_nights = (trips.arrival_date - trips.departure_date);")
-    file.puts("UPDATE trips SET insurance_id = (SELECT id from insurances order by random()+id limit 1);")
-
-    #trip price
+    file.puts("UPDATE trips SET insurance_id = (SELECT id from insurances order by random()+trips.id limit 1);")
+    file.puts("UPDATE trips SET trip_price = (
+        number_of_nights * 
+        ((select price_for_children_and_old from insurances where insurances.id = insurance_id)
+        +
+        (select price_for_a_person * hotels.discount_percent_for_children / 100 from hotels where hotels.id = hotel_id))
+        +
+        (select price from flights where flights.id = departure_flight_id) * 
+        (select discount_persent_for_children from aircompanies where id = (select aircompany_id from flights where id = departure_flight_id))/100
+        +
+        (select price from flights where flights.id  = arrival_flight_id) *
+        (select discount_persent_for_children from aircompanies where id = (select aircompany_id from flights where id = arrival_flight_id))/100
+    )
+    WHERE tourist_id IN (select id from tourists where tourists.person_id IN 
+        (select id from people where (floor(extract(epoch FROM ( NOW() - people.birthday_date)/86400/365))) < 18));
+    
+    
+    UPDATE trips SET trip_price = (
+        number_of_nights * 
+        ((select price_for_adult from insurances where insurances.id = insurance_id)
+        +
+        (select price_for_a_person from hotels where hotels.id = hotel_id))
+        +
+        (select price from flights where flights.id = departure_flight_id)
+        +
+        (select price from flights where flights.id  = arrival_flight_id)
+        )
+    WHERE tourist_id IN (select id from tourists where tourists.person_id IN 
+        (select id from people where (floor(extract(epoch FROM ( NOW() - people.birthday_date)/86400/365))) >= 18));
+    
+    
+    UPDATE trips SET trip_price = (trip_price + 
+        (SELECT luggage_price from aircompanies where id = (select aircompany_id from flights where flights.id = departure_flight_id))
+        +
+        (SELECT luggage_price from aircompanies where id = (select aircompany_id from flights where flights.id = arrival_flight_id))
+        )
+    WHERE has_luggage = true;
+    
+    UPDATE trips SET trip_price = (trip_price + 
+        (SELECT meal_price from aircompanies where id = (select aircompany_id from flights where flights.id = departure_flight_id))
+        +
+        (SELECT meal_price from aircompanies where id = (select aircompany_id from flights where flights.id = arrival_flight_id))
+        )
+    WHERE meal_for_flight = true;")
+    file.puts("update trips set trip_price = trip_price * 0.9
+        WHERE (select has_client_card from clients where id = client_id) = 'True';")
 end
 
 insert_into_all_tables
