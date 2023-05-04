@@ -10,7 +10,7 @@ def insert_into_all_tables
         # insert_into_aircompanies(file)
         # insert_into_airports(file)
         # insert_into_hotels(file)
-        # insert_into_flights(file)
+        insert_into_flights(file)
     end
     File.open('trips.sql', 'w') do |file|
         insert_into_trips(file)
@@ -228,7 +228,18 @@ end
 
 
 def insert_into_trips(file)
+
     (0...5000).each do
+        file.puts("INSERT INTO trips (client_id, worker_id, tourist_id, 
+            country_id, meal_for_flight, has_luggage) VALUES")
+        file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
+        (SELECT id FROM workers ORDER BY random() LIMIT 1),
+        (SELECT id FROM tourists ORDER BY random() LIMIT 1),
+        (SELECT id FROM countries where id IN (39, 38, 36, 30, 27, 24, 22, 18, 13, 11, 1) ORDER BY random() LIMIT 1),
+        \'#{[true, false].sample}\', \'#{[true, false].sample}\');")
+    end
+
+    (0...1000).each do
         file.puts("INSERT INTO trips (client_id, worker_id, tourist_id, 
             country_id, meal_for_flight, has_luggage) VALUES")
         file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
