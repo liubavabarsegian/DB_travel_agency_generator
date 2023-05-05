@@ -10,7 +10,7 @@ def insert_into_all_tables
         # insert_into_aircompanies(file)
         # insert_into_airports(file)
         # insert_into_hotels(file)
-        insert_into_flights(file)
+        # insert_into_flights(file)
     end
     File.open('trips.sql', 'w') do |file|
         insert_into_trips(file)
@@ -155,12 +155,12 @@ end
 
 def insert_into_flights(file)
     #fligths from Russia to other countires (any)
-    (0...500).each do 
+    (0...1000).each do 
         file.puts("INSERT INTO flights 
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 160)
+        departure_time = Faker::Time.between_dates(from: Date.today - 365, to: Date.today + 120, period: :all)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -177,7 +177,7 @@ def insert_into_flights(file)
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 160)
+        departure_time = Faker::Time.between_dates(from: Date.today - 365, to: Date.today + 120, period: :all)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -189,12 +189,12 @@ def insert_into_flights(file)
     end
 
     #fligths to Russia from other countires (any)
-    (0...500).each do 
+    (0...1000).each do 
         file.puts("INSERT INTO flights 
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.forward(days: 200)
+        departure_time = Faker::Time.between_dates(from: Date.today - 362, to: Date.today + 160, period: :all)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -211,7 +211,7 @@ def insert_into_flights(file)
             (flight_number, departure_time, price, 
             flight_duration, departure_airport_id, arrival_airport_id, aircompany_id) VALUES")
         flight_number = Faker::Alphanumeric.alphanumeric(number:4, min_numeric:3, min_alpha: 1)
-        departure_time = Faker::Time.backward(days: 200)
+        departure_time = Faker::Time.between_dates(from: Date.today - 363, to: Date.today + 160, period: :all)
         price = Faker::Number.between(from: 10000, to:80000)
         flight_duration = Faker::Number.between(from: 1, to: 20)
         file.puts("\t(\'#{flight_number}\', \'#{departure_time}\', \'#{price}\', \'#{flight_duration}\', 
@@ -323,6 +323,7 @@ def insert_into_trips(file)
     WHERE meal_for_flight = true;")
     file.puts("update trips set trip_price = trip_price * 0.9
         WHERE (select has_client_card from clients where id = client_id) = 'True';")
+    file.puts("call give_bonus_points();")
 end
 
 insert_into_all_tables
