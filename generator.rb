@@ -230,53 +230,51 @@ end
 def insert_into_trips(file)
 
     (0...5000).each do
-        file.puts("INSERT INTO trips (client_id, worker_id, tourist_id, 
+        file.puts("INSERT INTO trips (client_id, worker_id, 
             country_id, meal_for_flight, has_luggage) VALUES")
         file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
         (SELECT id FROM workers ORDER BY random() LIMIT 1),
-        (SELECT id FROM tourists ORDER BY random() LIMIT 1),
         (SELECT id FROM countries where id IN (39, 38, 36, 30, 27, 24, 22, 18, 13, 11, 1) ORDER BY random() LIMIT 1),
         \'#{[true, false].sample}\', \'#{[true, false].sample}\');")
     end
 
     (0...1000).each do
-        file.puts("INSERT INTO trips (client_id, worker_id, tourist_id, 
+        file.puts("INSERT INTO trips (client_id, worker_id,
             country_id, meal_for_flight, has_luggage) VALUES")
         file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
         (SELECT id FROM workers ORDER BY random() LIMIT 1),
-        (SELECT id FROM tourists ORDER BY random() LIMIT 1),
         (SELECT id FROM countries where id != 32 ORDER BY random() LIMIT 1),
         \'#{[true, false].sample}\', \'#{[true, false].sample}\');")
     end
 
-    file.puts("UPDATE trips SET hotel_id = 
-        (SELECT id from hotels where hotels.city_id IN  (select id from cities 
-            WHERE cities.country_id = trips.country_id) order by random() limit 1),
-        departure_flight_id = 
-        (select f.id from flights as f 
-            INNER JOIN (select id AS airp from airports where city_id IN 
-                    (select city_id from countries where countries.id = trips.country_id)) AS t1
-            ON f.arrival_airport_id = t1.airp
-        WHERE NOT EXISTS (select departure_time from flights where flights.id = f.id AND departure_time <
-                                                (select departure_time from flights where flights.id = trips.arrival_flight_id))
-        AND NOT EXISTS (select departure_time from flights where flights.id = f.id AND departure_time >
-                                                (select departure_time from flights where flights.id = trips.departure_flight_id))
-        
-        order by random() limit 1);")
-    file.puts("UPDATE trips SET 
-        departure_date = 
-            (select departure_time from flights where flights.id = trips.departure_flight_id),
-        arrival_flight_id = ((select id from flights where 
-                (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))/86400))) >= 3 
-                AND
-                (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))/86400))) <= 30
-                AND departure_airport_id IN 
-            (select id from airports where city_id IN 
-                (select city_id from countries where countries.id = trips.country_id))) order by random() limit 1);")
-    file.puts("UPDATE trips SET 
-        arrival_date = 
-            (select departure_time from flights where flights.id = trips.arrival_flight_id);")
-    file.puts("UPDATE trips set number_of_nights = (trips.arrival_date - trips.departure_date);")
+    file.puts("update trips tr set departure_flight_id = (select f.id from flights as f
+                    INNER JOIN (select id AS airp from airports where city_id IN
+                        (select city_id from countries where countries.id = tr.country_id)) AS t1
+                ON f.arrival_airport_id = t1.airp								   
+                order by random() limit 1);
+
+            update  trips tr set departure_date = 
+                        (select departure_time from flights where flights.id = tr.departure_flight_id);
+
+
+            update trips tr set arrival_flight_id = ((select id from flights where 
+                            (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))/86400))) >= 3 
+                            AND
+                            (floor(extract(epoch FROM (flights.departure_time - (select departure_time from flights where flights.id = departure_flight_id))/86400))) <= 30
+                            AND departure_airport_id IN 
+                        (select id from airports where city_id IN 
+                            (select city_id from countries where countries.id = tr.country_id))) order by random() limit 1);
+
+
+            UPDATE trips SET 
+                    arrival_date = 
+                        (select departure_time from flights where flights.id = trips.arrival_flight_id);
+
+            UPDATE trips set number_of_nights = (trips.arrival_date - trips.departure_date);
+
+
+            ")
+    file.puts("call tourists();")
     file.puts("UPDATE trips SET insurance_id = (SELECT id from insurances order by random()+trips.id limit 1);")
     file.puts("UPDATE trips SET trip_price = (
         number_of_nights * 
