@@ -251,10 +251,8 @@ def insert_into_trips(file)
     file.puts("call departures();
                 call arrivals();
                 call tourists();
-                call hotels();")
-    # file.puts("update trips set trip_price = trip_price * 0.9
-    #     WHERE (select has_client_card from clients where id = client_id) = 'True';")
-    # # file.puts("call give_bonus_points();")
+                call hotels();
+                call give_bonus_points();")
 end
 
 insert_into_all_tables
