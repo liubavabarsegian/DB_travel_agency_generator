@@ -20,5 +20,3 @@ update  trips tr
 
 END;
 $$ LANGUAGE plpgsql;
-
-call departures();

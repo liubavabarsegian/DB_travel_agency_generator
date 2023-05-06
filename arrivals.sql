@@ -30,5 +30,3 @@ UPDATE trips set number_of_nights = (trips.arrival_date - trips.departure_date);
 
 END;
 $$ LANGUAGE plpgsql;
-
-call arrivals();

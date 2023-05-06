@@ -23,6 +23,3 @@ for i in all_trips loop
 end loop l;
 END;
 $$ LANGUAGE plpgsql;
-
-
-call tourists();

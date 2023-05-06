@@ -94,5 +94,3 @@ end loop meal;
 
 END;
 $$ LANGUAGE plpgsql;
-
-call price();
