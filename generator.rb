@@ -3,17 +3,17 @@ require 'faker'
 def insert_into_all_tables
     Faker::Config.locale = :ru
     File.open('better_data.sql', 'w') do |file|
-        insert_into_people(file)
-        insert_into_clients(file)
-        insert_into_tourists(file)
-        insert_into_workers(file)
-        insert_into_aircompanies(file)
-        insert_into_airports(file)
-        insert_into_hotels(file)
-        insert_into_flights(file)
+        # insert_into_people(file)
+        # insert_into_clients(file)
+        # insert_into_tourists(file)
+        # insert_into_workers(file)
+        # insert_into_aircompanies(file)
+        # insert_into_airports(file)
+        # insert_into_hotels(file)
+        # insert_into_flights(file)
     end
     File.open('trips.sql', 'w') do |file|
-        insert_into_trips(file)
+        # insert_into_trips(file)
     end
 end
 
@@ -229,21 +229,22 @@ end
 
 def insert_into_trips(file)
 
-    (0...500).each do
+    (0...5000).each do
         file.puts("INSERT INTO trips (client_id, worker_id, insurance_id,
             country_id, meal_for_flight, has_luggage) VALUES")
         file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
         (SELECT id FROM workers ORDER BY random() LIMIT 1),
-        (SELECT id FROM countries where id IN (39, 38, 36, 30, 27, 24, 22, 18, 13, 11, 1) ORDER BY random() LIMIT 1),
         (SELECT id from insurances order by random() limit 1),
+        (SELECT id FROM countries where id IN (39, 38, 36, 30, 27, 24, 22, 18, 13, 11, 1) ORDER BY random() LIMIT 1),
         \'#{[true, false].sample}\', \'#{[true, false].sample}\');")
     end
 
-    (0...100).each do
-        file.puts("INSERT INTO trips (client_id, worker_id,
+    (0...2000).each do
+        file.puts("INSERT INTO trips (client_id, worker_id, insurance_id,
             country_id, meal_for_flight, has_luggage) VALUES")
         file.puts("\t((SELECT id FROM clients ORDER BY random() LIMIT 1), 
         (SELECT id FROM workers ORDER BY random() LIMIT 1),
+        (SELECT id from insurances order by random() limit 1),
         (SELECT id FROM countries where id != 32 ORDER BY random() LIMIT 1),
         \'#{[true, false].sample}\', \'#{[true, false].sample}\');")
     end
@@ -252,6 +253,7 @@ def insert_into_trips(file)
                 call arrivals();
                 call tourists();
                 call hotels();
+                call price();
                 call give_bonus_points();")
 end
 
